@@ -162,6 +162,7 @@ def my_tap_handler(attr,old,new):
     #p.text(x=0,y=0,text="@name")
     patch_name =  source.data['name'][new['1d']['indices'][0]]
     print("TapTool callback executed on Patch {}".format(patch_name))
+    p.text(x=0,y=0,text=[patch_name])
 
 renderer.data_source.on_change("selected", my_tap_handler)
 #taptool = p.select(type=TapTool)
