@@ -28,6 +28,9 @@ class Country:
     def get_meat_cons_pc(self):
         return self._meat_cons_pc
 
+    def get_veges(self):
+        return self._veges
+
     def set_name(self, name):
         self._name = name
 
@@ -45,6 +48,9 @@ class Country:
 
     def set_meat_cons_pc(self, meat_cons_pc):
         self._meat_cons_pc = meat_cons_pc
+
+    def set_veges(self,veges):
+        self._veges = veges
 
     def __str__(self):
         stri = "\nName: " + str(self._name) \
@@ -66,3 +72,37 @@ class Coordinates:
     def lon(self):
         return self._lon
 
+
+class Product:
+    def __init__(self, name, type):
+        self._name = name
+        self._key = name[:3].lower()
+        self._type = type
+
+    def __str__(self):
+        stri = "\nName: " + str(self._name) \
+               + "\nKey: " + str(self._key) \
+               + "\nType: " + str(self._type) \
+               + "\n"
+        return stri
+
+    def landuse_per_kg(self):
+        return self._landuse_per_kg
+
+    def lifetime(self):
+        return self._lifetime
+
+    def name(self):
+        return self._name
+
+    def key(self):
+        return self._key
+
+    def type(self):
+        return self._type
+
+    def set_lifetime(self, lifetime):
+        self._lifetime = lifetime
+
+    def set_landuse_per_kg(self,landuse_per_kg):
+        self._landuse_per_kg = landuse_per_kg
