@@ -4,8 +4,10 @@ from bokeh.io import show
 from bokeh.models import (
     ColumnDataSource,
     HoverTool,
+    TapTool,
     LogColorMapper,
-    Patches
+    Patches,
+    OpenURL
 )
 from bokeh.palettes import Viridis6 as palette
 from bokeh.plotting import figure
@@ -16,6 +18,7 @@ from map_classes import Product
 from bokeh.models.widgets import Slider
 from bokeh.io import curdoc
 from bokeh.layouts import row, widgetbox
+from bokeh.models.glyphs import Text
 
 import functions as fn
 
@@ -53,7 +56,7 @@ source = ColumnDataSource(data=dict(
     x=country_xs,
     y=country_ys,
     name=country_names,
-    rate=country_areas,
+    area=country_areas,
 ))
 
 TOOLS = "pan,wheel_zoom,reset,hover,save,tap"
@@ -67,7 +70,7 @@ p = figure(
 p.grid.grid_line_color = None
 
 renderer = p.patches('x', 'y', source=source,
-          fill_color={'field': 'rate', 'transform': color_mapper},
+          fill_color={'field': 'area', 'transform': color_mapper},
           fill_alpha=0.7, line_color="white", line_width=0.5)
 
 
@@ -83,7 +86,7 @@ hover = p.select_one(HoverTool)
 hover.point_policy = "follow_mouse"
 hover.tooltips = [
     ("name", "@name"),
-    ("area", "@rate"),
+    ("area", "@area"),
     ("(long, lat)", "($x, $y)"),
 ]
 
@@ -127,14 +130,40 @@ def update_data(attrname, old, new):
 
 slider_vegetarians.on_change('value', update_data)
 
+###############
+from bokeh.io import output_file, show
+from bokeh.layouts import widgetbox
+from bokeh.models.widgets import CheckboxButtonGroup
+
+output_file("checkbox_button_group.html")
+
+checkbox_button_group = CheckboxButtonGroup(
+        labels=["Option 1", "Option 2", "Option 3"], active=[0, 1])
+
+#show(widgetbox(checkbox_button_group))
+
+
+def my_radio_handler(new):
+    print('Radio button option ' + str(new) + ' selected.')
+
+
+checkbox_button_group.on_click(my_radio_handler)
+#######################################
+
 # Set up layouts and add to document
-inputs = widgetbox(slider_vegetarians)
+inputs = widgetbox(slider_vegetarians, checkbox_button_group)
 
 curdoc().add_root(row(inputs, p, width=800))
 curdoc().title = "Vege Map"
 
+url = "http://www.colors.com"
+def my_tap_handler(attr,old,new):
+    #print('hi there')
+    #p.text(x=0,y=0,text="@name")
+    patch_name =  source.data['name'][new['1d']['indices'][0]]
+    print("TapTool callback executed on Patch {}".format(patch_name))
 
-#show(p)
-
-
+renderer.data_source.on_change("selected", my_tap_handler)
+#taptool = p.select(type=TapTool)
+#taptool.callback = my_tap_handler()
 
