@@ -66,7 +66,8 @@ def update_circle():
     x = [fn.country_center(selected_country)[1]]
     y = [fn.country_center(selected_country)[0]]
     z = [fn.radius_deg(selected_country, beef)]
-    source_circle.data = dict(x=x,y=y,z=z)
+    area = [fn.calc_area(selected_country, beef)]
+    source_circle.data = dict(x=x,y=y,z=z, area=area)
 
 
 data = pd.read_csv("coordinates.csv")
@@ -139,8 +140,9 @@ hover.tooltips = [
 z = [fn.radius_deg(selected_country, beef)]
 x = [fn.country_center(selected_country)[1]]
 y = [fn.country_center(selected_country)[0]]
+area = [fn.calc_area(selected_country, beef)]
 
-source_circle = ColumnDataSource(data=dict(x=x,y=y,z=z))
+source_circle = ColumnDataSource(data=dict(x=x,y=y,z=z,area=area))
 p.circle('x','y',radius='z', source=source_circle)
 
 
