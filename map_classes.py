@@ -1,11 +1,30 @@
+import functions as fn
+from bokeh.models.markers import Circle
+
+class Coordinates:
+    def __init__(self,lat,lon):
+        self._lat = lat
+        self._lon = lon
+
+    def lat(self):
+        return self._lat
+
+    def lon(self):
+        return self._lon
+
 class Country:
-    def __init__(self, name, area, area_agri, population, coordinates):
+    def __init__(self, name, area, population, coordinates):
         self._name = name
         self._key = name[:3].lower()
         self._population = population
         self._area = area
-        self._area_agri = area_agri
+        #self._area_agri = area_agri
         self._coordinates = coordinates
+        self._meat_cons_pc = None
+        self._veges = None
+        self._landuse_circle = None
+        self._center = Coordinates(self._coordinates.lat().median(), self._coordinates.lon().median())
+
 
     def get_name(self):
         return self._name
@@ -13,14 +32,14 @@ class Country:
     def get_key(self):
         return self._key
 
+    def get_population(self):
+        return self._population
+
     def get_area(self):
         return self._area
 
-    def get_area_agri(self):
-        return self._area_agri
-
-    def get_population(self):
-        return self._population
+    #def get_area_agri(self):
+    #    return self._area_agri
 
     def get_coordinates(self):
         return self._coordinates
@@ -31,14 +50,20 @@ class Country:
     def get_veges(self):
         return self._veges
 
+    def get_landuse_circle(self):
+        return self._landuse_circle
+
+    def get_center(self):
+        return self._center
+
     def set_name(self, name):
         self._name = name
 
     def set_area(self, area):
         self._area = area
 
-    def set_area_agri(self, area_agri):
-        self._area_agri = area_agri
+    #def set_area_agri(self, area_agri):
+    #    self._area_agri = area_agri
 
     def set_population(self, population):
         self._population = population
@@ -52,6 +77,13 @@ class Country:
     def set_veges(self,veges):
         self._veges = veges
 
+    def set_landuse_circle(self, product):
+        self._landuse_circle = Circle(x=self._center[1], y=self._center[0], size=fn.radius_deg(self, product), line_color="#3288bd", fill_color="white", line_width=3)
+
+    def plot_circle(self, canvas):
+
+        canvas.add_glyph(source, self._landuse_circle)
+
     def __str__(self):
         stri = "\nName: " + str(self._name) \
                + "\nKey: " + str(self._key) \
@@ -61,16 +93,7 @@ class Country:
                + "\n"
         return stri
 
-class Coordinates:
-    def __init__(self,lat,lon):
-        self._lat = lat
-        self._lon = lon
 
-    def lat(self):
-        return self._lat
-
-    def lon(self):
-        return self._lon
 
 
 class Product:
