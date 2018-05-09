@@ -3,7 +3,7 @@ from bokeh.models.markers import Circle
 
 
 class Coordinates:
-    def __init__(self,lat,lon):
+    def __init__(self,lon,lat):
         self._lat = lat
         self._lon = lon
 
@@ -16,17 +16,17 @@ class Coordinates:
 
 
 class Country:
-    def __init__(self, name, area, population, coordinates):
+    def __init__(self, name, area, population, coordinate_list):
         self._name = name
         self._key = name[:3].lower()
         self._population = population
         self._area = area
         #self._area_agri = area_agri
-        self._coordinates = coordinates
+        self._coordinate_list = coordinate_list
         self._meat_cons_pc = None
         self._veges = None
         self._landuse_circle = None
-        self._center = Coordinates(self._coordinates.lat().median(), self._coordinates.lon().median())
+        self._center = Coordinates(self._coordinate_list[0].lon().median(), self._coordinate_list[0].lat().median())
 
 
     def get_name(self):
@@ -44,8 +44,8 @@ class Country:
     #def get_area_agri(self):
     #    return self._area_agri
 
-    def get_coordinates(self):
-        return self._coordinates
+    def get_coordinate_list(self):
+        return self._coordinate_list
 
     def get_meat_cons_pc(self):
         return self._meat_cons_pc
@@ -71,8 +71,8 @@ class Country:
     def set_population(self, population):
         self._population = population
 
-    def set_coordinates(self, coordinates):
-        self._coordinates = coordinates
+    def set_coordinate_list(self, coordinate_list):
+        self._coordinate_list = coordinate_list
 
     def set_meat_cons_pc(self, meat_cons_pc):
         self._meat_cons_pc = meat_cons_pc
@@ -81,7 +81,7 @@ class Country:
         self._veges = veges
 
     def set_landuse_circle(self, product):
-        self._landuse_circle = Circle(x=self._center[1], y=self._center[0], size=fn.radius_deg(self, product), line_color="#3288bd", fill_color="white", line_width=3)
+        self._landuse_circle = Circle(x=self._center.lon(), y=self._center.lat(), size=fn.radius_deg(self, product), line_color="#3288bd", fill_color="white", line_width=3)
 
     def plot_circle(self, canvas):
 
@@ -92,7 +92,7 @@ class Country:
                + "\nKey: " + str(self._key) \
                + "\nPopulation: " + str(self._population) \
                + "\nArea: " + str(self._area) \
-               + "\nCoordinates: " + str(self._coordinates) \
+               + "\nCoordinates: " + str(self._coordinate_list) \
                + "\n"
         return stri
 
