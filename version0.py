@@ -1,7 +1,7 @@
 import pandas as pd
 import math
 import functions as fn
-
+import os
 
 from bokeh.models import (
     ColumnDataSource,
@@ -60,25 +60,88 @@ def update_circle():
     source_circle.data = dict(x=x,y=y,r=r)
 
 
-data = pd.read_csv("coordinates.csv")
+#data = pd.read_csv("coordinates.csv")
 
 palette.reverse()
 
 # initialize countries
-lat = data[data['key'] == 'ger']['lat']
-lon = data[data['key'] == 'ger']['lon']
-ger = Country('Germany',350,80,Coordinates(lat,lon))
-lat = data[data['key'] == 'usa']['lat']
-lon = data[data['key'] == 'usa']['lon']
-usa = Country('USA',9147,325,Coordinates(lat,lon))
-usa.set_meat_cons_pc(120)
-ger.set_meat_cons_pc(100)
-usa.set_veges(5)
-ger.set_veges(5)
-countries = [ger,usa]
+countries = []
 
 
-selected_country = ger
+"""
+directory = os.fsencode('/home/sewo/personal_projects/Landuse-Map_offline/coordinate_data/csv_format/')
+for file in os.listdir(directory):
+    filename = os.fsdecode(file)
+    #print(filename)
+    #country_name = os.path.splitext(filename)[0]
+
+    data = pd.read_csv('/home/sewo/personal_projects/Landuse-Map_offline/coordinate_data/csv_format/' + str(filename))
+    # print(data['lat'])
+    lat = data['lat']
+    print(lat)
+    print((" type of lat", type(lat)))
+    lon = data['lon']
+    country_name = data['name'][0]
+    print(country_name)
+    country = Country(country_name, 350, population=80, coordinates=Coordinates(lat, lon))
+    countries.append(country)
+"""
+
+
+import fiona
+shape_file = fiona.open("/home/sewo/personal_projects/Landuse-Map_offline/coordinate_data/natural_earth/ne_110m_admin_0_countries.shp")
+print(shape_file.schema)
+
+
+for shape in shape_file:
+    name = shape["properties"]["ADMIN"]
+    print(name)
+    coordinates = shape["geometry"]["coordinates"]
+    print(shape["geometry"]["type"])
+    coord = []
+    if shape["geometry"]["type"] == "Polygon":
+        for unit in coordinates:
+            #print(unit)
+            lon = [idx[0] for idx in unit]
+            lat = [idx[1] for idx in unit]
+            coord.append([lon,lat])
+    elif shape["geometry"]["type"] == "MultiPolygon":
+        for unit in coordinates:
+            #print(unit)
+            lon = [idx[0] for idx in unit[0]]
+            lat = [idx[1] for idx in unit[0]]
+            coord.append([lon,lat])
+    print(coord)
+    lat = pd.Series(coord[0][1])
+    lon = pd.Series(coord[0][0])
+    print("lat: ", lat)
+    country_name = shape["properties"]["ADMIN"]
+    country = Country(country_name, 350, population=80, coordinates=Coordinates(lat, lon))
+    countries.append(country)
+
+
+
+for country in countries:
+    country.set_meat_cons_pc(100)
+    country.set_veges(5)
+
+
+
+#lat = data[data['key'] == 'ger']['lat']
+#lon = data[data['key'] == 'ger']['lon']
+#ger = Country('Germany',350,80,Coordinates(lat,lon))
+#lat = data[data['key'] == 'usa']['lat']
+#lon = data[data['key'] == 'usa']['lon']
+#usa = Country('USA',9147,325,Coordinates(lat,lon))
+#usa.set_meat_cons_pc(120)
+#ger.set_meat_cons_pc(100)
+#usa.set_veges(5)
+#ger.set_veges(5)
+#countries = [ger,usa]
+
+
+#selected_country = ger
+selected_country = countries[0]
 
 # initialize products
 beef = Product(name="beef", type="animal")

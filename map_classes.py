@@ -1,6 +1,7 @@
 import functions as fn
 from bokeh.models.markers import Circle
 
+
 class Coordinates:
     def __init__(self,lat,lon):
         self._lat = lat
@@ -11,6 +12,8 @@ class Coordinates:
 
     def lon(self):
         return self._lon
+
+
 
 class Country:
     def __init__(self, name, area, population, coordinates):
