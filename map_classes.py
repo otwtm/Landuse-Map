@@ -16,9 +16,9 @@ class Coordinates:
 
 
 class Country:
-    def __init__(self, name, area, population, coordinate_list):
+    def __init__(self, name, code, area, population, coordinate_list):
         self._name = name
-        self._key = name[:3].lower()
+        self._key = code
         self._population = population
         self._area = area
         #self._area_agri = area_agri

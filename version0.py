@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import math
 import functions as fn
 import os
@@ -25,17 +26,29 @@ from bokeh.layouts import widgetbox
 from bokeh.models.widgets import CheckboxButtonGroup
 from bokeh.models.markers import Circle
 from bokeh.models import CustomJS
+from bokeh.models.selections import Selection
 
 
 # Event handlers
 def my_tap_handler(attr,old,new):
     global selected_country
     global slider_vegetarians
-    patch_name = source.data['key'][new['1d']['indices'][0]]
-    print("patch_name: ", patch_name)
-    selected_country = [country for country in countries if country.get_key()==patch_name][0]
+    global source
+
+    indices = source.selected.indices
+    country_name = source.data["name"][indices[0]]
+
+    new_indicies = list(df.loc[df['name'] == country_name].index)
+    print("country_name: ", country_name)
+    print("new_indices: ", new_indicies)
+
+    #country_indices = df['id'][df['group'] == group_name]
+
+    if len(indices)==1 and len(new_indicies)>1:
+        source.selected = Selection(indices=new_indicies)
+
+    selected_country = [country for country in countries if country.get_name()==country_name][0]
     selected_country.set_veges(slider_vegetarians.value)
-    print(selected_country)
     update_circle()
     update_slider_title(selected_country)
 
@@ -51,6 +64,7 @@ def update_data(attrname, old, new):
     selected_country.set_veges(new)
     update_circle()
 
+
 def update_circle():
     global selected_country
     global source_circle
@@ -59,10 +73,8 @@ def update_circle():
     r = [fn.radius_deg(selected_country, beef)]
     source_circle.data = dict(x=x,y=y,r=r)
 
-
-#data = pd.read_csv("coordinates.csv")
-
 palette.reverse()
+
 
 # initialize countries
 countries = []
@@ -73,7 +85,7 @@ shape_file = fiona.open("natural_earth/ne_110m_admin_0_countries.shp")
 
 
 for shape in shape_file:
-    name = shape["properties"]["ADMIN"]
+    #print(shape["properties"])
     coordinates = shape["geometry"]["coordinates"]
     coord = []
     if shape["geometry"]["type"] == "Polygon":
@@ -89,7 +101,8 @@ for shape in shape_file:
             lat = pd.Series([idx[1] for idx in unit[0]])
             coord.append(Coordinates(lon, lat))
     country_name = shape["properties"]["ADMIN"]
-    country = Country(country_name, 350, population=80, coordinate_list=coord)
+    country_code = shape["properties"]["ADM0_A3"]
+    country = Country(country_name, country_code, 350, population=80, coordinate_list=coord)
     countries.append(country)
 
 
@@ -118,18 +131,18 @@ country_areas = [item for sublist in temp_list for item in sublist]
 temp_list = [[country.get_key() for unit in country.get_coordinate_list()] for country in countries]
 country_keys = [item for sublist in temp_list for item in sublist]
 
-
-
-color_mapper = LogColorMapper(palette=palette)
-
-source = ColumnDataSource(data=dict(
+df = pd.DataFrame(data=dict(
     x=country_xs,
     y=country_ys,
     name=country_names,
     area=country_areas,
-    key = country_keys
+    key=country_keys
 ))
 
+source = ColumnDataSource(df)
+
+
+color_mapper = LogColorMapper(palette=palette)
 TOOLS = "pan,wheel_zoom,reset,hover,save,tap"
 p = figure(
     title="First Test Map ", tools=TOOLS,
@@ -141,8 +154,10 @@ p.grid.grid_line_color = None
 
 
 renderer = p.patches('x', 'y', source=source,
-          fill_color={'field': 'area', 'transform': color_mapper},
+          fill_color={'field': 'name', 'transform': color_mapper},
           fill_alpha=0.7, line_color="white", line_width=0.5)
+
+
 
 selected_patches = Patches(fill_color="#a6cee3")
 nonselected_patches = Patches(fill_color="#ffcee3")
@@ -167,24 +182,11 @@ glyph = Circle(x="x", y="y", radius="r", line_color="#3288bd", fill_color="white
 p.add_glyph(source_circle,glyph)
 
 
-callback = CustomJS(args=dict(source_circle=source_circle), code="""
-    var data = source_circle.data;
-    x = data['x']
-    y = data['y']
-    r = data['r']
-    var new = cb_obj.value
-    z = [fn.radius_deg(selected_country, beef)]
-    x = [fn.country_center(selected_country)[1]]
-    data['r'] = [fn.country_center(selected_country)[0]]
-    print(data['r'])
-    source_circle.change.emit();
-    source_circle.data = dict(x=x,y=y,z=z)
-""")
 
 
 # widgets
 slider_vegetarians = Slider(title="Vegetarians in "+selected_country.get_name()+" in percent", value=selected_country.get_veges(), start=0.0, end=100.0, step=0.1)
-# slider_vegetarians = Slider(start=0.0, end=100, value=1, step=.1, title="power", callback=callback)
+
 
 checkbox_button_group = CheckboxButtonGroup(
         labels=["Option 1", "Option 2", "Option 3"], active=[0, 1])
